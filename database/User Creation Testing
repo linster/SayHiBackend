@@ -1,0 +1,25 @@
+﻿
+--Create a user
+insert INTO profile."Users"("oAuthId", "Created") VALUES (null, current_timestamp);
+
+--Create a profile for the user
+insert INTO profile."Profile"("UserId", "Chattiness", "ConversationTopics") VALUES (1, 4, '{"Computers", "Technology", "Otherthing"}');
+
+update profile."Profile" set "Nickname" = 'Boris';
+--Add a nickname to the user...
+
+
+
+
+--Check the insertions
+select * from profile."Users";
+select p.* from profile."Profile" p;
+select * from profile."BusinessCards";
+
+
+
+--Next, make a business card for the user
+insert into profile."BusinessCards"("ProfileId", "FirstName", "LastName") VALUES (6, 'Boris', 'Badenov');
+
+
+--Insert dummy data into the db
