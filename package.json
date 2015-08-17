@@ -1,0 +1,25 @@
+{
+  "name": "SayHiBackend",
+  "version": "0.0.1",
+  "description": "Backend server for the Say Hi App",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.13.3",
+    "passport": "^0.2.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/linster/SayHiBackend.git"
+  },
+  "author": "Stefan Martynkiw",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/linster/SayHiBackend/issues"
+  },
+  "homepage": "https://github.com/linster/SayHiBackend"
+}
