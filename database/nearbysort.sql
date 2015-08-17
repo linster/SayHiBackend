@@ -31,3 +31,4 @@ WHERE
 	AND ST_DWithin(l1."Point", l2."Point", 750) --Must be 750 meters or closer together to get returned.
 	AND p."UserId" = l2."UserId"
 ORDER BY l2."LocationId", ST_Distance(l1."Point", l2."Point")	
+--Also, limit date.

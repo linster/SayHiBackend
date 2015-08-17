@@ -6,8 +6,8 @@
  INSERT INTO 
 	profile."Profile"("UserId", "Chattiness", "ConversationTopics", "Nickname") 
  VALUES
-	( (SELECT MAX("Id") FROM profile."Users"), 10, 
-	'{"Computers", "Technology", "Otherthing"}', 'Vaclav');
+	( (SELECT MAX("Id") FROM profile."Users"), 5, 
+	'{"Computers", "Technology", "Otherthing"}', 'Rocky');
 
  select * from profile."Users";
  select * from profile."Profile";
