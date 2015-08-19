@@ -5,7 +5,11 @@
   "main": "server.js",
   "dependencies": {
     "express": "^4.13.3",
-    "passport": "^0.2.2"
+    "massive": "^2.0.6",
+    "passport": "^0.2.2",
+    "pg": "^4.4.1",
+    "pg-hstore": "^2.3.2",
+    "sequelize": "^3.5.1"
   },
   "devDependencies": {},
   "scripts": {
