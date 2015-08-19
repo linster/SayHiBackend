@@ -17,6 +17,14 @@ app.get('/api', function (req, res) {
   res.send('Hello World!');
 });
 
+app.get('/api/profile/:id', function(req, res){
+  var id = req.params.id;
+  massiveInstance.profile.Profile.find({ProfileId: id}, function(err, n){
+	res.json(n);
+  });
+  //res.send(id);
+});
+
 var server = app.listen(80, function () {
   var host = server.address().address;
   var port = server.address().port;
