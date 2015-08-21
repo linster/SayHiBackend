@@ -22,8 +22,16 @@ app.get('/api/profile/:id', function(req, res){
   massiveInstance.profile.Profile.find({ProfileId: id}, function(err, n){
 	res.json(n);
   });
-  //res.send(id);
 });
+
+app.get('/api/bizcard/:id', function(req, res){
+  var id = req.params.id;
+  massiveInstance.profile.BusinessCards.find({ProfileId: id}, function(err, n){
+	res.json(n);
+  });
+});
+
+
 
 var server = app.listen(80, function () {
   var host = server.address().address;
