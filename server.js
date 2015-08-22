@@ -3,6 +3,7 @@ var express = require('express');
 var app = express();
 var massive = require("massive");
 var bodyParser = require('body-parser');
+
 /* Connect to postgres */
 var connectionString = "postgres://" + db_config.user +":"+ db_config.password +"@"+ db_config.host +"/"+ db_config.database
 console.log(connectionString);
@@ -11,8 +12,16 @@ var massiveInstance = massive.connectSync({connectionString: connectionString});
 
 /* Set up global db reference */
 app.set('db', massiveInstance);
+app.use(function(req, res, next){
+		req.db = massiveInstance
+		next();
+});
+
 
 var jsonParser = bodyParser.json();
+
+/* Pull in the auth code */
+var auth = require('./auth.js')(app);
 
 app.use('/', express.static('static'));
 app.get('/api', function (req, res) {
@@ -21,14 +30,14 @@ app.get('/api', function (req, res) {
 
 app.get('/api/profile/:id', function(req, res){
   var id = req.params.id;
-  massiveInstance.profile.Profile.find({ProfileId: id}, function(err, n){
+  req.db.profile.Profile.find({ProfileId: id}, function(err, n){
 	res.json(n);
   });
 });
 
 app.get('/api/bizcard/:id', function(req, res){
   var id = req.params.id;
-  massiveInstance.profile.BusinessCards.find({ProfileId: id}, function(err, n){
+  req.db.profile.BusinessCards.find({ProfileId: id}, function(err, n){
 	res.json(n);
   });
 });
@@ -36,7 +45,7 @@ app.get('/api/bizcard/:id', function(req, res){
 app.get('/api/AverageRatings/:User/:RatingWho', function(req, res){
   var user = req.params.User;
   var ratingwho = req.params.RatingWho;
-  massiveInstance.AverageRatings([user, ratingwho], function(err, n){
+  req.db.AverageRatings([user, ratingwho], function(err, n){
 	console.log(err);
 	res.json(n);
   });
@@ -52,8 +61,8 @@ app.post('/api/Location', jsonParser, function(req, res){
   var latitude = req.body.lat;
   var longitude = req.body.lon;
   var accuracy  = req.body.accuracy;
-
-  massiveInstance.Nearme([longitude, latitude], function(err, n){
+	/* Insert into logged locations later */
+  req.db.Nearme([longitude, latitude], function(err, n){
 	console.log(err);
 	res.json(n);
   });
