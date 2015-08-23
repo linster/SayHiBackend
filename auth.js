@@ -34,9 +34,26 @@ passport.use(new LocalStrategy({ passReqToCallback: true, session: false},
 	}
 ));
 
+/* Google OAuth 2.0 Account Strategy */
+/* https://github.com/jaredhanson/passport-google-oauth/blob/master/examples/oauth2/app.js */
+//Should only need to add the new strategy,
+//update the serializeUser & deserializeUser methods
+//add an AssociatedAccounts table to the profile schema
+
+//Follow the example for the /auth/ namespace
+
+//Change the below routes to be mapped into /auth.
+
+
+
+
+
 /*  Authenticated session persistence */
 /*  https://github.com/passport/express-4.x-local-example/blob/master/server.js */
 
+//For social auth this should change to be working against 
+//a profile."AssociatedAccounts" table, which links together
+//a bunch of social accounts to the same person.
 passport.serializeUser(function(user, cb) {
   cb(null, user.Id);
 });
