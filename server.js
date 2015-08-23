@@ -1,6 +1,6 @@
 var db_config = require('./config.js');
 var express = require('express');
-
+var flash = require('connect-flash');
 
 app = express();
 //passport = require('passport');
@@ -22,18 +22,19 @@ app.use(function(req, res, next){
 		next();
 });
 
+/* Set up global logging middleware */
+app.use(require('morgan')('combined'));
 
 var jsonParser = bodyParser.json();
 
 /* Pull in the auth code */
 auth = require('./auth.js');
 
+
+
+
+/* Static landing pages are served from ./static */
 app.use('/', express.static('static'));
-
-
-
-
-
 
 app.get('/api', function (req, res) {
   res.send('Say Hi, World!');
