@@ -1,6 +1,11 @@
 var db_config = require('./config.js');
 var express = require('express');
-var app = express();
+
+
+app = express();
+//passport = require('passport');
+
+
 var massive = require("massive");
 var bodyParser = require('body-parser');
 
@@ -21,9 +26,15 @@ app.use(function(req, res, next){
 var jsonParser = bodyParser.json();
 
 /* Pull in the auth code */
-var auth = require('./auth.js')(app);
+auth = require('./auth.js');
 
 app.use('/', express.static('static'));
+
+
+
+
+
+
 app.get('/api', function (req, res) {
   res.send('Say Hi, World!');
 });
