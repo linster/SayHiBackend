@@ -41,8 +41,8 @@ passport.serializeUser(function(user, cb) {
   cb(null, user.Id);
 });
 
-passport.deserializeUser(function(id, req, cb) {
-  req.db.users.findById(id, function (err, user) {
+passport.deserializeUser(function(req, id, cb) {
+  req.db.profile.Users.findOne({Id: id}, function (err, user) {
     if (err) { return cb(err); }
     cb(null, user);
   });
@@ -68,7 +68,8 @@ app.get('/login', function(req, res) {
 /* Handle form postback */
 app.post('/login', passport.authenticate('local'), 
 	function(req, res){
-		res.redirect('/login/' + req.user.username);
+		res.json(req.user);
+		//res.redirect('/login/' + req.user.username);
 	}
 );
 /* Logout Route */
