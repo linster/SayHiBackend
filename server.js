@@ -88,3 +88,6 @@ var server = app.listen(80, function () {
   console.log('Example app listening at http://%s:%s', host, port);
 });
 
+//Later:
+///https://developers.google.com/+/web/api/rest/oauth#login-scopes
+//https://developers.google.com/+/features/play-installs
