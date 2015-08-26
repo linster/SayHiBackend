@@ -26,31 +26,66 @@ passport.use(new LocalStrategy({ passReqToCallback: true, session: false},
 				if (res == false){
 					return done(null, false, 
 					     {message: 'Incorrect password.'});
+				} else {
+				/* Now that we've logged in, return a profile */
+				req.db.profile.Profile.findone(user.ProfileId, 
+					function(err, rprofile) {
+						return done(null, rprofile);
+					});
 				}
 			});
-			//TODO: Might want to move this inside the callback above...
-			return done(null, user);
 		});
 	}
 ));
+
+/* User profile checker for socially logged-in users */
+var FindOrCreateUser = function(req, profile, done) {
+// The profile object follows this spec:
+// http://passportjs.org/docs/profile
+req.db.profile.Users.where('SocialType = $1 AND oAuthId = $2', 
+	[profile.provider, profile.id], function(err, userrec){
+	if (existingrec){
+	//We have an existing record of this user.
+	//Do return profile table record.
+	req.db.profile.Profile.findOne(userrec, function(err, extprof){
+		if (err) {/* error out */ done(err)}
+		return done(null, extprof);
+		});
+	} else {
+		//First make a profile Id
+		req.db.profile.Profile.save(
+		   { Nickname: profile.displayName  }, function(err, newprofile){
+			req.db.profile.Users.save(
+				{ oAuthId: profile.id,
+				  SocialType: profile.provider,
+				  ProfileId: newprofile.ProfileId},
+				function(err, newUser){
+					if (err) { return done(err);}
+					return done(null, newprofile)
+				});
+		});
+	}
+});
 
 
 /* Google OAuth 2.0 Account Strategy */
 /* https://github.com/jaredhanson/passport-google-oauth/blob/master/examples/oauth2/app.js */
 
 assport.use(new GoogleStrategy({
-    consumerKey: GOOGLE_CONSUMER_KEY,
-    consumerSecret: GOOGLE_CONSUMER_SECRET,
-    callbackURL: "http://127.0.0.1/auth/google/callback"
+    consumerKey: '761036697909-9p4sln87guk5igdgf787k9g5vfuabai3.apps.googleusercontent.com',
+    consumerSecret: 'H2bsH6CCej6ybFCG3YAOaXTJ',
+    callbackURL: "http://lagoon.stefanm.ca/auth/google/callback"
   },
   function(token, tokenSecret, profile, done) {
 	//Need all sorts of logic on the create user here....
 	//See what goodies we can get from here:
 	//https://developers.google.com/oauthplayground/?code=4/8iu7vFXoODFkYHw9UdxoK1-3vSxnQrGP7uVkZJ5Oa3E&authuser=0&prompt=consent&session_state=b765fe2dbee8f7779b439bd199cc5e889a37cee3..40dd#
 
-    User.findOrCreate({ googleId: profile.id }, function (err, user) {
+    FindOrCreateUser(req, profile, done);
+
+    /*User.findOrCreate({ googleId: profile.id }, function (err, user) {
       return done(err, user);
-    });
+    });*/
   }
 ));
 
@@ -58,10 +93,10 @@ app.get('/auth/google',
   passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/plus.me' }));
 
 app.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  passport.authenticate('google', { failureRedirect: '/auth/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/');
+    res.redirect('/auth/success');
   });
 
 
@@ -72,9 +107,6 @@ app.get('/auth/google/callback',
 //Should only need to add the new strategy,
 //update the serializeUser & deserializeUser methods
 
-//Follow the example for the /auth/ namespace
-
-//Change the below routes to be mapped into /auth.
 
 
 
@@ -83,17 +115,15 @@ app.get('/auth/google/callback',
 /*  Authenticated session persistence */
 /*  https://github.com/passport/express-4.x-local-example/blob/master/server.js */
 
-//For social auth this should change to be working against 
-//a profile."AssociatedAccounts" table, which links together
-//a bunch of social accounts to the same person.
-passport.serializeUser(function(user, cb) {
-  cb(null, user.Id);
+//Change this to serialize on profile records.
+passport.serializeUser(function(profile, cb) {
+  cb(null, profile.ProfileId);
 });
 
 passport.deserializeUser(function(req, id, cb) {
-  req.db.profile.Users.findOne({Id: id}, function (err, user) {
+  req.db.profile.Profile.findOne({ProfileId: id}, function (err, profile) {
     if (err) { return cb(err); }
-    cb(null, user);
+    cb(null, profile);
   });
 });
 
@@ -126,6 +156,9 @@ app.get('/auth/logout', function(req, res) {
 	req.logout();
 	res.redirect('/');
 });
+
+
+
 
 
 
