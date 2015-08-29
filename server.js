@@ -2,9 +2,11 @@ var db_config = require('./config.js');
 var express = require('express');
 var flash = require('connect-flash');
 
-app = express();
-//passport = require('passport');
+passport = require('passport');
 
+app = express();
+app.use(passport.initialize());
+app.use(passport.session());
 
 var massive = require("massive");
 var bodyParser = require('body-parser');
@@ -25,16 +27,29 @@ app.use(function(req, res, next){
 /* Set up global logging middleware */
 app.use(require('morgan')('combined'));
 
+
+/* Global body parser */
 var jsonParser = bodyParser.json();
 
+
+/* Configure Express.Js in one shot */
+
+var expressSession = require('express-session');
+
+/* Set up Express for passport sessions */
+app.use(require('cookie-parser')());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(expressSession({ secret: 'SayWUT, Crazy Boris?', 
+                                     resave: false, 
+                                     saveUninitialized: false }));
 /* Pull in the auth code */
 auth = require('./auth.js');
 
 
 
-
 /* Static landing pages are served from ./static */
 app.use('/', express.static('static'));
+app.use('/godmode', express.static('godmode'));
 
 app.get('/api', function (req, res) {
   res.send('Say Hi, World!');

@@ -3,13 +3,14 @@
  * SayHi will support Google+, Twitter, and Facebook Signin
  */
 
-passport = require('passport');
+//passport = require('passport');
 var path = require('path');
 var bcrypt = require('bcrypt');
 
+
 //Import strategies
 var LocalStrategy = require('passport-local').Strategy;
-var GoogleStrategy = require('passport-google-oauth').OAuthStrategy;
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy
 
 /* Set up strategies */
@@ -28,8 +29,9 @@ passport.use(new LocalStrategy({ passReqToCallback: true, session: false},
 					     {message: 'Incorrect password.'});
 				} else {
 				/* Now that we've logged in, return a profile */
-				req.db.profile.Profile.findone(user.ProfileId, 
+				req.db.profile.Profile.findOne({ProfileId: user.ProfileId}, 
 					function(err, rprofile) {
+						if (err) {return done(err);}
 						return done(null, rprofile);
 					});
 				}
@@ -42,9 +44,14 @@ passport.use(new LocalStrategy({ passReqToCallback: true, session: false},
 var FindOrCreateUser = function(req, profile, done) {
 // The profile object follows this spec:
 // http://passportjs.org/docs/profile
-req.db.profile.Users.where('SocialType = $1 AND oAuthId = $2', 
+req.db.profile.Users.where('SocialType = $1 AND oAuthId = $2', //TODO add a check for email address
 	[profile.provider, profile.id], function(err, userrec){
-	if (existingrec){
+	//TODO
+	//IMPORTANT: Add a check for count in the userrec array. If > 1, already
+	//exists!!!!!!
+
+
+	if (userrec){
 	//We have an existing record of this user.
 	//Do return profile table record.
 	req.db.profile.Profile.findOne(userrec, function(err, extprof){
@@ -55,6 +62,7 @@ req.db.profile.Users.where('SocialType = $1 AND oAuthId = $2',
 		//First make a profile Id
 		req.db.profile.Profile.save(
 		   { Nickname: profile.displayName  }, function(err, newprofile){
+			if (err) { console.log(err); return done(err);}
 			req.db.profile.Users.save(
 				{ oAuthId: profile.id,
 				  SocialType: profile.provider,
@@ -65,18 +73,19 @@ req.db.profile.Users.where('SocialType = $1 AND oAuthId = $2',
 				});
 		});
 	}
-});
+});};
 
 
 /* Google OAuth 2.0 Account Strategy */
 /* https://github.com/jaredhanson/passport-google-oauth/blob/master/examples/oauth2/app.js */
 
-assport.use(new GoogleStrategy({
-    consumerKey: '761036697909-9p4sln87guk5igdgf787k9g5vfuabai3.apps.googleusercontent.com',
-    consumerSecret: 'H2bsH6CCej6ybFCG3YAOaXTJ',
-    callbackURL: "http://lagoon.stefanm.ca/auth/google/callback"
+passport.use(new GoogleStrategy({
+    clientID: "761036697909-9p4sln87guk5igdgf787k9g5vfuabai3.apps.googleusercontent.com",
+    clientSecret: "H2bsH6CCej6ybFCG3YAOaXTJ",
+    callbackURL: "http://lagoon.stefanm.ca/auth/google/callback",
+    passReqToCallback: true
   },
-  function(token, tokenSecret, profile, done) {
+  function(req, token, tokenSecret, profile, done) {
 	//Need all sorts of logic on the create user here....
 	//See what goodies we can get from here:
 	//https://developers.google.com/oauthplayground/?code=4/8iu7vFXoODFkYHw9UdxoK1-3vSxnQrGP7uVkZJ5Oa3E&authuser=0&prompt=consent&session_state=b765fe2dbee8f7779b439bd199cc5e889a37cee3..40dd#
@@ -90,7 +99,13 @@ assport.use(new GoogleStrategy({
 ));
 
 app.get('/auth/google',
-  passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/plus.me' }));
+  passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/plus.me' }),
+  function (req, res) {
+	console.log('Logged in'); //Should never be called
+  }
+
+
+);
 
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/auth/login' }),
@@ -103,10 +118,7 @@ app.get('/auth/google/callback',
 
 
 
-
-//Should only need to add the new strategy,
-//update the serializeUser & deserializeUser methods
-
+//TODO: Move middleware app.use's around. Fix "Middleware not in use error"
 
 
 
@@ -128,16 +140,10 @@ passport.deserializeUser(function(req, id, cb) {
 });
 
 
-/* Set up Express for passport sessions */
-app.use(require('body-parser').urlencoded({ extended: true }));
-app.use(require('cookie-parser')());
-app.use(require('express-session')({ secret: 'SayWUT, Crazy Boris?', 
-				     resave: false, 
-				     saveUninitialized: false }));
 
 /* Initialize passport */
-app.use(passport.initialize());
-app.use(passport.session());
+//app.use(passport.initialize());
+//app.use(passport.session());
 
 
 /* Serve up static login page */
