@@ -44,17 +44,17 @@ passport.use(new LocalStrategy({ passReqToCallback: true, session: false},
 var FindOrCreateUser = function(req, profile, done) {
 // The profile object follows this spec:
 // http://passportjs.org/docs/profile
-req.db.profile.Users.where('SocialType = $1 AND oAuthId = $2', //TODO add a check for email address
+req.db.profile.Users.where('SocialType = $1 AND oAuthId = $2', 
+//TODO add a check for email address
 	[profile.provider, profile.id], function(err, userrec){
 	//TODO
 	//IMPORTANT: Add a check for count in the userrec array. If > 1, already
 	//exists!!!!!!
 
-
 	if (userrec){
-	//We have an existing record of this user.
-	//Do return profile table record.
-	req.db.profile.Profile.findOne(userrec, function(err, extprof){
+	/* We have an existing record of this user. */
+	/* Return profile table record. */
+	req.db.profile.Profile.findOne(userrec.ProfileId, function(err, extprof){
 		if (err) {/* error out */ done(err)}
 		return done(null, extprof);
 		});
@@ -111,7 +111,8 @@ app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/auth/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/auth/success');
+	res.json(req.user);
+//    res.redirect('/auth/success');
   });
 
 

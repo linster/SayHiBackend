@@ -1,0 +1,4 @@
+var massive = require('massive');
+
+var db = massive.connectSync({connectionString: 'postgres://APIuser:APIuser@lagoon.stefanm.ca:5432/SayHi'});
+
