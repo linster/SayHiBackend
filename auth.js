@@ -42,22 +42,19 @@ passport.use(new LocalStrategy({ passReqToCallback: true, session: false},
 
 /* User profile checker for socially logged-in users */
 var FindOrCreateUser = function(req, profile, done) {
-// The profile object follows this spec:
-// http://passportjs.org/docs/profile
+/*  The profile object follows this spec: */
+/*   http://passportjs.org/docs/profile   */
 req.db.profile.Users.where('socialtype = $1 AND oauthid = $2', 
-//TODO add a check for email address
 	[profile.provider, profile.id], function(err, userrec){
 	//TODO
-	//IMPORTANT: Add a check for count in the userrec array. If > 1, already
-	//exists!!!!!!
-	console.warn('User rec:');
-	console.warn(userrec);
+	//console.warn('User rec:');
+	//console.warn(userrec);
 	if (userrec.length > 0){
 	/* We have an existing record of this user. */
 	/* Return profile table record. */
 	req.db.profile.Profile.findOne({profileid: userrec[0].profileid}, function(err, extprof){
-		console.warn('extprof');
-		console.warn(extprof);
+		//console.warn('extprof');
+		//console.warn(extprof);
 		if (err) {/* error out */ console.warn(err); done(err)}
 		return done(null, extprof);
 		});
@@ -122,18 +119,8 @@ app.get('/auth/google/callback',
 
 
 
-
-
-//TODO: Move middleware app.use's around. Fix "Middleware not in use error"
-
-
-
-
-
 /*  Authenticated session persistence */
 /*  https://github.com/passport/express-4.x-local-example/blob/master/server.js */
-
-//Change this to serialize on profile records.
 passport.serializeUser(function(profile, cb) {
   cb(null, profile.profileid);
 });
@@ -144,13 +131,6 @@ passport.deserializeUser(function(req, id, cb) {
     cb(null, profile);
   });
 });
-
-
-
-/* Initialize passport */
-//app.use(passport.initialize());
-//app.use(passport.session());
-
 
 /* Serve up static login page */
 app.get('/auth/login', function(req, res) {
