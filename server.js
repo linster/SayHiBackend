@@ -25,7 +25,7 @@ app.use(function(req, res, next){
 });
 
 /* Set up global logging middleware */
-app.use(require('morgan')('combined'));
+app.use(require('morgan')('dev'));
 
 
 /* Global body parser */
@@ -55,22 +55,25 @@ app.get('/api', function (req, res) {
   res.send('Say Hi, World!');
 });
 
-app.get('/api/profile/:id', function(req, res){
-  var id = req.params.id;
+/* The LimitUser authorization middleware depends on */
+/* req.params.userid being defined. */
+
+app.get('/api/profile/:userid', function(req, res){
+  var id = req.params.userid;
   req.db.profile.Profile.find({ProfileId: id}, function(err, n){
 	res.json(n);
   });
 });
 
-app.get('/api/bizcard/:id', function(req, res){
-  var id = req.params.id;
+app.get('/api/bizcard/:userid', function(req, res){
+  var id = req.params.userid;
   req.db.profile.BusinessCards.find({ProfileId: id}, function(err, n){
 	res.json(n);
   });
 });
 
-app.get('/api/AverageRatings/:User/:RatingWho', function(req, res){
-  var user = req.params.User;
+app.get('/api/AverageRatings/:userid/:RatingWho', function(req, res){
+  var user = req.params.userid;
   var ratingwho = req.params.RatingWho;
   req.db.AverageRatings([user, ratingwho], function(err, n){
 	console.log(err);

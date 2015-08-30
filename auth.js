@@ -44,29 +44,34 @@ passport.use(new LocalStrategy({ passReqToCallback: true, session: false},
 var FindOrCreateUser = function(req, profile, done) {
 // The profile object follows this spec:
 // http://passportjs.org/docs/profile
-req.db.profile.Users.where('SocialType = $1 AND oAuthId = $2', 
+req.db.profile.Users.where('socialtype = $1 AND oauthid = $2', 
 //TODO add a check for email address
 	[profile.provider, profile.id], function(err, userrec){
 	//TODO
 	//IMPORTANT: Add a check for count in the userrec array. If > 1, already
 	//exists!!!!!!
-
-	if (userrec){
+	console.warn('User rec:');
+	console.warn(userrec);
+	if (userrec.length > 0){
 	/* We have an existing record of this user. */
 	/* Return profile table record. */
-	req.db.profile.Profile.findOne(userrec.ProfileId, function(err, extprof){
-		if (err) {/* error out */ done(err)}
+	req.db.profile.Profile.findOne({profileid: userrec[0].profileid}, function(err, extprof){
+		console.warn('extprof');
+		console.warn(extprof);
+		if (err) {/* error out */ console.warn(err); done(err)}
 		return done(null, extprof);
 		});
 	} else {
 		//First make a profile Id
 		req.db.profile.Profile.save(
 		   { Nickname: profile.displayName  }, function(err, newprofile){
+			console.warn('Newprofile:');
+			console.warn(newprofile);
 			if (err) { console.log(err); return done(err);}
 			req.db.profile.Users.save(
-				{ oAuthId: profile.id,
-				  SocialType: profile.provider,
-				  ProfileId: newprofile.ProfileId},
+				{ oauthid: profile.id,
+				  socialtype: profile.provider,
+				  profileid: newprofile.profileid},
 				function(err, newUser){
 					if (err) { return done(err);}
 					return done(null, newprofile)
@@ -130,7 +135,7 @@ app.get('/auth/google/callback',
 
 //Change this to serialize on profile records.
 passport.serializeUser(function(profile, cb) {
-  cb(null, profile.ProfileId);
+  cb(null, profile.profileid);
 });
 
 passport.deserializeUser(function(req, id, cb) {
@@ -165,8 +170,22 @@ app.get('/auth/logout', function(req, res) {
 });
 
 
+/* Authorization middlewares */
+/* Insert these wherever you need to secure endpoints */
 
 
+/* Use this for GET /api/ endpoints that get info on a user */
+function AuthGetLimitUser(req, res, next) {
+	if (req.isAuthenticated()){
+		//Get userId from profile Id
+		//if true...
+		return next();
+	}
+	res.redirect('/api');
 
+}
 
+/* Use this for god mode */
+function AuthGodMode(req, res, next){
 
+}
