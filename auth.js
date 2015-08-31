@@ -128,6 +128,9 @@ passport.deserializeUser(function(req, id, cb) {
   });
 });
 
+/* Redirection */
+/* http://stackoverflow.com/questions/13335881/redirecting-to-previous-page-after-authentication-in-node-js-using-passport-js */
+
 /* Serve up static login page */
 app.get('/auth/login', function(req, res) {
 	res.sendFile(path.join(__dirname, '/static/login.html') )
@@ -144,6 +147,7 @@ app.get('/auth/logout', function(req, res) {
 	req.logout();
 	res.redirect('/');
 });
+
 
 
 /* Authorization middlewares */
@@ -202,11 +206,38 @@ AuthGodMode: function (req, res, next){
 			 }
 			}
 		);
+	} else {
+		//res.status(403).end();
+		res.redirect('/auth/login');
 	}
-	//res.status(403).end();
-	res.redirect('/auth/login');
 
 }
 };
+
+
+/* Get my own profile & user objects */
+app.get('/auth/me/profile', function(req, res) {
+	if(req.isAuthenticated()){
+	  res.json(req.user);
+	} else {
+	res.status(403).end();
+	}
+});
+
+app.get('/auth/me/user', function(req, res){
+	if (req.isAuthenticated()){
+	req.db.profile.Users.findOne({profileid: req.user.profileid}, 
+	   function(err, ruser){ 
+		if (err) {console.warn('Error in /auth/me/user'); res.status(500).end();}
+		res.json(ruser);
+	   });
+	} else { 
+	res.status(403).end();
+	}
+
+});
+
+
+
 
 module.exports = { middleware: authMiddlewares};

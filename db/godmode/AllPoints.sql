@@ -7,5 +7,6 @@ SELECT DISTINCT ON (l2."LocationId") p."Nickname",
     ST_AsGeoJSON(l2."LocationCircle") as LocationCircle
    FROM
     location."LoggedLocations" l2,
-    profile."Profile" p
-  WHERE p."UserId" = l2."UserId";
+    profile."Profile" p,
+    profile."Users" u
+  WHERE u."Id" = l2."UserId" AND p."profileid" = u."profileid"

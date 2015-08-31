@@ -1,5 +1,5 @@
 var db_config = require('./config.js');
-var express = require('express');
+express = require('express');
 var flash = require('connect-flash');
 
 _ = require('underscore');
@@ -49,6 +49,12 @@ app.use(passport.session());
 auth = require('./auth.js');
 
 
+/* Now that we have auth code initialized, pass a middlewares */
+/* around globally in the req object */
+app.use(function(req, res, next) {
+	req.authmiddleware = auth.middleware;
+	next();
+});
 
 /* Static landing pages are served from ./static */
 app.use('/', express.static('static'));
@@ -103,7 +109,7 @@ app.post('/api/Location', jsonParser, function(req, res){
 
 /* GodMode API for admin pages */
 var godmode = require('./godmode/godmode.js');
-app.use('/godmode', express.static('godmode/web/'));
+//app.use('/godmode', express.static('godmode/web/'));
 
 
 
