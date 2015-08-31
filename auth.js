@@ -3,7 +3,6 @@
  * SayHi will support Google+, Twitter, and Facebook Signin
  */
 
-//passport = require('passport');
 var path = require('path');
 var bcrypt = require('bcrypt');
 
@@ -29,7 +28,7 @@ passport.use(new LocalStrategy({ passReqToCallback: true, session: false},
 					     {message: 'Incorrect password.'});
 				} else {
 				/* Now that we've logged in, return a profile */
-				req.db.profile.Profile.findOne({ProfileId: user.ProfileId}, 
+				req.db.profile.Profile.findOne({profileid: user.profileid}, 
 					function(err, rprofile) {
 						if (err) {return done(err);}
 						return done(null, rprofile);
@@ -62,8 +61,8 @@ req.db.profile.Users.where('socialtype = $1 AND oauthid = $2',
 		//First make a profile Id
 		req.db.profile.Profile.save(
 		   { Nickname: profile.displayName  }, function(err, newprofile){
-			console.warn('Newprofile:');
-			console.warn(newprofile);
+			//console.warn('Newprofile:');
+			//console.warn(newprofile);
 			if (err) { console.log(err); return done(err);}
 			req.db.profile.Users.save(
 				{ oauthid: profile.id,
@@ -94,9 +93,6 @@ passport.use(new GoogleStrategy({
 
     FindOrCreateUser(req, profile, done);
 
-    /*User.findOrCreate({ googleId: profile.id }, function (err, user) {
-      return done(err, user);
-    });*/
   }
 ));
 
@@ -126,7 +122,7 @@ passport.serializeUser(function(profile, cb) {
 });
 
 passport.deserializeUser(function(req, id, cb) {
-  req.db.profile.Profile.findOne({ProfileId: id}, function (err, profile) {
+  req.db.profile.Profile.findOne({profileid: id}, function (err, profile) {
     if (err) { return cb(err); }
     cb(null, profile);
   });
@@ -155,17 +151,62 @@ app.get('/auth/logout', function(req, res) {
 
 
 /* Use this for GET /api/ endpoints that get info on a user */
-function AuthGetLimitUser(req, res, next) {
-	if (req.isAuthenticated()){
-		//Get userId from profile Id
-		//if true...
-		return next();
-	}
-	res.redirect('/api');
 
-}
+authMiddlewares = {
+
+AuthGetLimitUser: function (req, res, next) {
+	if (req.isAuthenticated()){
+		/* Get userId from profile Id in req.user (our session) */
+		req.db.profile.Users.findOne({profileid: req.user.profileid}, 
+			function(err, user){
+			console.warn('Middleware UserId');
+			console.warn(user.Id);
+			 if (req.params.userid != user.Id) {
+				res.status(403).end();
+			 }else{
+				return next();
+			 }
+			}
+		);
+	}
+	res.status(403).end();
+	//res.redirect('/auth/login');
+},
+AuthGetLimitProfile: function (req, res, next) {
+	if (req.isAuthenticated()){
+		 if (req.params.profileid != req.user.profileid) {
+			res.status(403).end();
+		 }else{
+			return next();
+		 }
+	}
+	//res.status(403).end();
+	res.redirect('/auth/login');
+},
 
 /* Use this for god mode */
-function AuthGodMode(req, res, next){
+AuthGodMode: function (req, res, next){
+	if (req.isAuthenticated()){
+		/* Get userId from profile Id in req.user (our session) */
+		req.db.profile.Users.findOne({profileid: req.user.profileid}, 
+			function(err, user){
+			 /* Hardcoded List of who can get into God Mode */
+			 /* List of profile.Users.username. For security,*/
+			 /* only local-auth users can get into God Mode */
+			 var GodList = ['SayHiAdmin', 'io'];
+
+			 if (_.contains(GodList, user.username)){
+			     return next();
+			 } else {
+			     res.status(403).end();
+			 }
+			}
+		);
+	}
+	//res.status(403).end();
+	res.redirect('/auth/login');
 
 }
+};
+
+module.exports = { middleware: authMiddlewares};

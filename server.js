@@ -2,11 +2,11 @@ var db_config = require('./config.js');
 var express = require('express');
 var flash = require('connect-flash');
 
+_ = require('underscore');
+
 passport = require('passport');
 
 app = express();
-app.use(passport.initialize());
-app.use(passport.session());
 
 var massive = require("massive");
 var bodyParser = require('body-parser');
@@ -42,6 +42,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressSession({ secret: 'SayWUT, Crazy Boris?', 
                                      resave: false, 
                                      saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
+
 /* Pull in the auth code */
 auth = require('./auth.js');
 
@@ -49,7 +52,6 @@ auth = require('./auth.js');
 
 /* Static landing pages are served from ./static */
 app.use('/', express.static('static'));
-app.use('/godmode', express.static('godmode'));
 
 app.get('/api', function (req, res) {
   res.send('Say Hi, World!');
@@ -58,15 +60,15 @@ app.get('/api', function (req, res) {
 /* The LimitUser authorization middleware depends on */
 /* req.params.userid being defined. */
 
-app.get('/api/profile/:userid', function(req, res){
-  var id = req.params.userid;
-  req.db.profile.Profile.find({ProfileId: id}, function(err, n){
+app.get('/api/profile/:profileid', auth.middleware.AuthGetLimitProfile,  function(req, res){
+  var id = req.params.profileid;
+  req.db.profile.Profile.find({profileid: id}, function(err, n){
 	res.json(n);
   });
 });
 
-app.get('/api/bizcard/:userid', function(req, res){
-  var id = req.params.userid;
+app.get('/api/bizcard/:profileid', auth.middleware.AuthGetLimitProfile,  function(req, res){
+  var id = req.params.profileid;
   req.db.profile.BusinessCards.find({ProfileId: id}, function(err, n){
 	res.json(n);
   });
@@ -99,11 +101,17 @@ app.post('/api/Location', jsonParser, function(req, res){
 });
 
 
+/* GodMode API for admin pages */
+var godmode = require('./godmode/godmode.js');
+app.use('/godmode', express.static('godmode/web/'));
+
+
+
 var server = app.listen(80, function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('Example app listening at http://%s:%s', host, port);
+  console.log('SayHi server listening at http://%s:%s', host, port);
 });
 
 //Later:
