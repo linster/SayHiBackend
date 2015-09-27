@@ -73,6 +73,8 @@ app.get('/api/profile/:profileid', auth.middleware.AuthGetLimitProfile,  functio
   });
 });
 
+//Add in code to get a profile from a user id
+
 app.get('/api/bizcard/:profileid', auth.middleware.AuthGetLimitProfile,  function(req, res){
   var id = req.params.profileid;
   req.db.profile.BusinessCards.find({ProfileId: id}, function(err, n){

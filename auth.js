@@ -60,7 +60,9 @@ req.db.profile.Users.where('socialtype = $1 AND oauthid = $2',
 	} else {
 		//First make a profile Id
 		req.db.profile.Profile.save(
-		   { Nickname: profile.displayName  }, function(err, newprofile){
+		   { Nickname: profile.displayName,
+		     pictureurl: profile.photos[0].value
+		   }, function(err, newprofile){
 			//console.warn('Newprofile:');
 			//console.warn(newprofile);
 			if (err) { console.log(err); return done(err);}
@@ -142,6 +144,8 @@ app.post('/auth/login', passport.authenticate('local'),
 		//res.redirect('/login/' + req.user.username);
 	}
 );
+
+
 /* Logout Route */
 app.get('/auth/logout', function(req, res) {
 	req.logout();
@@ -216,7 +220,7 @@ AuthGodMode: function (req, res, next){
 
 
 /* Get my own profile & user objects */
-app.get('/auth/me/profile', function(req, res) {
+app.get('/auth/me/profile',function(req, res) {
 	if(req.isAuthenticated()){
 	  res.json(req.user);
 	} else {
